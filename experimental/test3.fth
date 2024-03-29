@@ -81,6 +81,7 @@ link :!  enter  { link  enter }  exit
 :! movabs$          $ b848 w,                      , ;
 :! jmp$               $ e9 c,                 rel32, ;
 :! jz$              $ 840f w,                 rel32, ;
+:! jnz$             $ 850f w,                 rel32, ;
 :! movzxbl          $ b60f w,            reg modr/m, ;
 :! seteb            $ 940f w,   $ 0      reg modr/m, ;
 :! setgb            $ 9f0f w,   $ 0      reg modr/m, ;
@@ -92,6 +93,11 @@ link :!  enter  { link  enter }  exit
 :! nip   { rdx popq } ;
 :! tuck  { rdx popq  rax pushq  rdx pushq } ;
 :! over  { rdx rsp movq@  rax pushq  rax rdx movq } ;
+
+:! <r>  { rsp rbp xchgq } ;
+\ TODO  probably need to optimize these
+:! >r   { <r> rax pushq <r> rax popq } ;
+:! r>   { rax pushq <r> rax popq <r> } ;
 
 :! there  { rax rdi xchgq } ;
 :! back   { rdi rax movq  rax popq } ;
@@ -110,7 +116,7 @@ link :!  enter  { link  enter }  exit
 :  literal  { dup movabs$ } ;
 
 :! begin   here ;
-:! cond    { rdx rax movq  rax popq  rdx rdx testq } ;
+:! cond    { rax rax testq  rax popq } ;
 :! until   { cond jz$ } ;
 :! again   { jmp$ } ;
 :! ahead   $ 0 { jmp$ }  here $ 4 - ;
@@ -119,6 +125,11 @@ link :!  enter  { link  enter }  exit
 :! else    { ahead } swap { then } ;
 :! while   { if } swap ;
 :! repeat  { again then } ;
+
+\ TODO consider rbx $ 0 cmpq$
+:! for   { <r> rbx pushq <r>  rbx rax movq  rax popq } here ;
+:! i     { dup  rax rbx movq  rax decq } ;
+:! next  { rbx decq  rbx rbx testq  jnz$  <r> rbx popq <r> } ;
 
 :! =    { rdx popq  rax rdx cmpq  rax seteb  rax rax movzxbl } ;
 :! >    { rdx popq  rax rdx cmpq  rax setgb  rax rax movzxbl } ;
@@ -141,13 +152,6 @@ link :!  enter  { link  enter }  exit
 
 
 \ Benchmark
-
-\ These are here just for feature parity; won't plan to use rel8 or loop later
-:  rel8,  here -  $ 1 - c, ;
-:! loop$  $ e2 c,  rel8, ;
-:! for   { rcx pushq  rcx rax movq  rax popq } here ;
-:! i     { dup  rax rcx movq  rax decq } ;
-:! next  { loop$  rcx popq } ;
 
 : collatz-step  dup $ 1 and  if  dup 2* + 1+  else  2/  then ;
 : collatz-len   $ 0 swap begin  dup $ 1 > while  collatz-step  swap 1+ swap repeat drop ;
