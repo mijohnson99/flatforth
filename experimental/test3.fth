@@ -55,6 +55,7 @@ link :!  enter  { link  enter }  exit
 
 
 \ More assembler words
+\ TODO  Sort by opcode
 
 :! 1shlq    rex.w,    $ d1 c,   $ 6      reg modr/m, ;
 :! 1sarq    rex.w,    $ d1 c,   $ 7      reg modr/m, ;
@@ -69,7 +70,12 @@ link :!  enter  { link  enter }  exit
 :! xorq     rex.w,    $ 31 c,            reg modr/m, ;
 :! cmpq     rex.w,    $ 39 c,  swap      reg modr/m, ;
 :! movq@    rex.w,    $ 8b c,  swap      mem modr/m, ;
+:! movq!    rex.w,    $ 89 c,            mem modr/m, ; \ TODO  swap like movq@
+:! movb!              $ 88 c,            mem modr/m, ; \ TODO  swap like movq@
 :! addq$    rex.w,    $ 81 c,  swap  $ 0 reg modr/m, d, ;
+:! shrq$    rex.w,    $ c1 c,  swap  $ 5 reg modr/m, c, ;
+:! shlq$    rex.w,    $ c1 c,  swap  $ 6 reg modr/m, c, ;
+:! sarq$    rex.w,    $ c1 c,  swap  $ 7 reg modr/m, c, ;
 :! cmovgq   rex.w,  $ 4f0f w,  swap      reg modr/m, ;
 :! movzxb@  rex.w,  $ b60f w,  swap      mem modr/m, ;
 :! movabs$          $ b848 w,                      , ;
@@ -118,8 +124,20 @@ link :!  enter  { link  enter }  exit
 :! >    { rdx popq  rax rdx cmpq  rax setgb  rax rax movzxbl } ;
 :! max  { rdx popq  rax rdx cmpq  rax rdx cmovgq } ;
 
+:!  @  { rax rax movq@ } ;
 :! c@  { rax rax movzxb@ } ;
+:!  !  { rdx popq  rax rdx movq!  rax popq } ;
+:! c!  { rdx popq  rax rdx movb!  rax popq } ;
+
 :! cell  $ 8 literal ;
+:! cell+  { rax } $ 8 { addq$ } ;
+:! cells  { rax } $ 3 { shlq$ } ;
+
+:!  rot  { rcx popq  rdx popq  rcx pushq  rax pushq  rax rdx movq } ;
+:! -rot  { rcx popq  rdx popq  rax pushq  rdx pushq  rax rcx movq } ;
+
+:! 2dup   { rdx rsp movq@  rax pushq  rdx pushq } ;
+:! 2drop  { drop drop } ;
 
 
 \ Benchmark
