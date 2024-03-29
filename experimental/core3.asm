@@ -258,17 +258,25 @@ getxt: ; leaves result in rdx
 	push	rax
 	mov	rax, rdi
 	call	_seek
-;	test	rdx, rdx
-;	jz	.q
+	test	rax, rax ;
+	jz	.notfound ;
 	movzx	ecx, byte [rax+8]
 	lea	rax, [rax+9+rcx]
 	mov	rdx, rax
 	pop	rax
 	ret
-;.q:	push	rax
-;	mov	rax, 0x3f
-;	call	_emit
-;	jmp	getxt
+.notfound: ;
+	xor	ecx, ecx ;
+.type:	cmp	cl, byte [rdi] ;
+	jge	.q ;
+	movzx	eax, byte [rdi+1+rcx] ;
+	call	_emit ;
+	inc	ecx ;
+	jmp	.type ;
+.q:	mov	rax, 0x3f ;
+	call	_emit ;
+	pop	rax ;
+	jmp	getxt ;
 	
 link '\'
 __comment:
