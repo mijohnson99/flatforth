@@ -29,9 +29,9 @@ link :!  enter  { link  enter }  exit
 :! popq   $ 58 + c, ;
 
 :  rex.w,           $ 48 c, ;
-:! movq     rex.w,  $ 89 c,  reg modr/m, ;
 :! addq     rex.w,  $ 01 c,  reg modr/m, ;
 :! subq     rex.w,  $ 29 c,  reg modr/m, ;
+:! movq     rex.w,  $ 89 c,  reg modr/m, ;
 :! stosb            $ aa c, ;
 :! stosd            $ ab c, ;
 :! stosw   $ 66 c,  $ ab c, ;
@@ -57,35 +57,44 @@ link :!  enter  { link  enter }  exit
 \ More assembler words
 \ TODO  Sort by opcode
 
-:! 1shlq    rex.w,    $ d1 c,   $ 6      reg modr/m, ;
-:! 1sarq    rex.w,    $ d1 c,   $ 7      reg modr/m, ;
-:! incq     rex.w,    $ ff c,   $ 0      reg modr/m, ;
-:! decq     rex.w,    $ ff c,   $ 1      reg modr/m, ;
-:! notq     rex.w,    $ f7 c,   $ 2      reg modr/m, ;
-:! negq     rex.w,    $ f7 c,   $ 3      reg modr/m, ;
-:! xchgq    rex.w,    $ 87 c,            reg modr/m, ;
-:! testq    rex.w,    $ 85 c,            reg modr/m, ;
-:! andq     rex.w,    $ 21 c,            reg modr/m, ;
 :! orq      rex.w,    $ 09 c,            reg modr/m, ;
+:! andq     rex.w,    $ 21 c,            reg modr/m, ;
 :! xorq     rex.w,    $ 31 c,            reg modr/m, ;
 :! cmpq     rex.w,    $ 39 c,  swap      reg modr/m, ;
-:! movq@    rex.w,    $ 8b c,  swap      mem modr/m, ;
-:! movq!    rex.w,    $ 89 c,            mem modr/m, ; \ TODO  swap like movq@
-:! movb!              $ 88 c,            mem modr/m, ; \ TODO  swap like movq@
 :! addq$    rex.w,    $ 81 c,  swap  $ 0 reg modr/m, d, ;
+:! cmpq$    rex.w,    $ 81 c,  swap  $ 7 reg modr/m, d, ;
+:! testq    rex.w,    $ 85 c,            reg modr/m, ;
+:! xchgq    rex.w,    $ 87 c,            reg modr/m, ;
+:! movb!              $ 88 c,            mem modr/m, ; \ TODO  swap like movq@
+:! movq!    rex.w,    $ 89 c,            mem modr/m, ; \ TODO  swap like movq@
+:! movq@    rex.w,    $ 8b c,  swap      mem modr/m, ;
 :! shrq$    rex.w,    $ c1 c,  swap  $ 5 reg modr/m, c, ;
 :! shlq$    rex.w,    $ c1 c,  swap  $ 6 reg modr/m, c, ;
 :! sarq$    rex.w,    $ c1 c,  swap  $ 7 reg modr/m, c, ;
-:! cmovgq   rex.w,  $ 4f0f w,  swap      reg modr/m, ;
-:! movzxb@  rex.w,  $ b60f w,  swap      mem modr/m, ;
-:! movabs$          $ b848 w,                      , ;
+:! 1shlq    rex.w,    $ d1 c,   $ 6      reg modr/m, ;
+:! 1sarq    rex.w,    $ d1 c,   $ 7      reg modr/m, ;
 :! jmp$               $ e9 c,                 rel32, ;
+:! notq     rex.w,    $ f7 c,   $ 2      reg modr/m, ;
+:! negq     rex.w,    $ f7 c,   $ 3      reg modr/m, ;
+:! incq     rex.w,    $ ff c,   $ 0      reg modr/m, ;
+:! decq     rex.w,    $ ff c,   $ 1      reg modr/m, ;
+:! cmovlq   rex.w,  $ 4c0f w,  swap      reg modr/m, ;
+:! cmovgq   rex.w,  $ 4f0f w,  swap      reg modr/m, ;
 :! jz$              $ 840f w,                 rel32, ;
 :! jnz$             $ 850f w,                 rel32, ;
-:! movzxbl          $ b60f w,            reg modr/m, ;
+:! jg$              $ 8f0f w,                 rel32, ;
 :! seteb            $ 940f w,   $ 0      reg modr/m, ;
+:! setneb           $ 950f w,   $ 0      reg modr/m, ;
+:! setlb            $ 9c0f w,   $ 0      reg modr/m, ;
+:! setgeb           $ 9d0f w,   $ 0      reg modr/m, ;
+:! setleb           $ 9e0f w,   $ 0      reg modr/m, ;
 :! setgb            $ 9f0f w,   $ 0      reg modr/m, ;
-:! setzb            { seteb } ;
+:! movzxb@  rex.w,  $ b60f w,  swap      mem modr/m, ;
+:! movzxbl          $ b60f w,            reg modr/m, ;
+:! movabs$          $ b848 w,                      , ;
+\ Aliases
+:! setzb   { seteb } ;
+:! setnzb  { setneb } ;
 
 
 \ More Forth primitives
@@ -126,14 +135,25 @@ link :!  enter  { link  enter }  exit
 :! while   { if } swap ;
 :! repeat  { again then } ;
 
-\ TODO consider rbx $ 0 cmpq$
-:! for   { <r> rbx pushq <r>  rbx rax movq  rax popq } here ;
-:! i     { dup  rax rbx movq  rax decq } ;
-:! next  { rbx decq  rbx rbx testq  jnz$  <r> rbx popq <r> } ;
+\ TODO consider including range checks
+:! for   { <r> rbx pushq <r>  rbx rax movq  rax popq }  here  { rbx decq } ;
+:! i     { dup  rax rbx movq } ;
+:! next  { rbx } $ 0 { cmpq$  jg$  <r> rbx popq <r> } ;
 
-:! =    { rdx popq  rax rdx cmpq  rax seteb  rax rax movzxbl } ;
-:! >    { rdx popq  rax rdx cmpq  rax setgb  rax rax movzxbl } ;
+:! 0=   { rax rax testq  rax setzb   rax rax movzxbl } ;
+:! 0<>  { rax rax testq  rax setnzb  rax rax movzxbl } ;
+:! 0>   { rax rax testq  rax setgb   rax rax movzxbl } ;
+:! 0<   { rax rax testq  rax setlb   rax rax movzxbl } ;
+:! 0>=  { rax rax testq  rax setgeb  rax rax movzxbl } ;
+:! 0<=  { rax rax testq  rax setleb  rax rax movzxbl } ;
+:! =    { rdx popq  rax rdx cmpq  rax seteb   rax rax movzxbl } ;
+:! <>   { rdx popq  rax rdx cmpq  rax setneb  rax rax movzxbl } ;
+:! >    { rdx popq  rax rdx cmpq  rax setgb   rax rax movzxbl } ;
+:! <    { rdx popq  rax rdx cmpq  rax setlb   rax rax movzxbl } ;
+:! >=   { rdx popq  rax rdx cmpq  rax setgeb  rax rax movzxbl } ;
+:! <=   { rdx popq  rax rdx cmpq  rax setleb  rax rax movzxbl } ;
 :! max  { rdx popq  rax rdx cmpq  rax rdx cmovgq } ;
+:! min  { rdx popq  rax rdx cmpq  rax rdx cmovlq } ;
 
 :!  @  { rax rax movq@ } ;
 :! c@  { rax rax movzxb@ } ;
