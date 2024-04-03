@@ -55,7 +55,6 @@ link :!  enter  { link  enter }  exit
 
 
 \ More assembler words
-\ TODO  Sort by opcode
 
 :! orq      rex.w,    $ 09 c,            reg modr/m, ;
 :! andq     rex.w,    $ 21 c,            reg modr/m, ;
@@ -73,11 +72,18 @@ link :!  enter  { link  enter }  exit
 :! sarq$    rex.w,    $ c1 c,  swap  $ 7 reg modr/m, c, ;
 :! 1shlq    rex.w,    $ d1 c,   $ 6      reg modr/m, ;
 :! 1sarq    rex.w,    $ d1 c,   $ 7      reg modr/m, ;
+:! clshrq   rex.w,    $ d3 c,   $ 5      reg modr/m, ;
+:! clshlq   rex.w,    $ d3 c,   $ 6      reg modr/m, ;
+:! clsarq   rex.w,    $ d3 c,   $ 7      reg modr/m, ;
 :! jmp$               $ e9 c,                 rel32, ;
 :! notq     rex.w,    $ f7 c,   $ 2      reg modr/m, ;
 :! negq     rex.w,    $ f7 c,   $ 3      reg modr/m, ;
+:! mulq     rex.w,    $ f7 c,   $ 4      reg modr/m, ;
+:! divq     rex.w,    $ f7 c,   $ 6      reg modr/m, ;
 :! incq     rex.w,    $ ff c,   $ 0      reg modr/m, ;
 :! decq     rex.w,    $ ff c,   $ 1      reg modr/m, ;
+:! callq    rex.w,    $ ff c,   $ 2      reg modr/m, ;
+:! jmpq     rex.w,    $ ff c,   $ 4      reg modr/m, ;
 :! cmovlq   rex.w,  $ 4c0f w,  swap      reg modr/m, ;
 :! cmovgq   rex.w,  $ 4f0f w,  swap      reg modr/m, ;
 :! jz$              $ 840f w,                 rel32, ;
@@ -106,10 +112,30 @@ link :!  enter  { link  enter }  exit
 :! <r>  { rsp rbp xchgq } ;
 \ TODO  probably need to optimize these
 :! >r   { <r> rax pushq <r> rax popq } ;
-:! r>   { rax pushq <r> rax popq <r> } ;
+:! r>   { rax pushq  <r> rax popq <r> } ;
+:! 2>r  { rdx popq  <r> rdx pushq  rax pushq <r>  rax popq } ;
+:! 2r>  { rax pushq  <r> rax popq  rdx popq <r>  rdx pushq } ;
+
+:! >>   { rcx rax movq  rax popq  rax clshrq } ;
+:! <<   { rcx rax movq  rax popq  rax clshlq } ;
+:! >>>  { rcx rax movq  rax popq  rax clsarq } ;
+:! <<<  { << } ;
+
+:! *     { rdx popq  rdx mulq } ;
+:! /     { rdx rdx xorq  rcx rax movq  rax popq  rcx divq } ;
+:! mod   { /  rax rdx movq } ;
+:! /mod  { /  rdx pushq } ;
 
 :! there  { rax rdi xchgq } ;
 :! back   { rdi rax movq  rax popq } ;
+:! allot  { rdi rax addq  rax popq } ;
+
+:! sp@    { rax pushq  rax rsp movq } ;
+:! rp@    { rax pushq  rax rbp movq } ;
+:! lp@    { rax pushq  rax rsi movq } ;
+:! sp!    { rsp rax movq  rax popq } ;
+:! rp!    { rbp rax movq  rax popq } ;
+:! lp!    { rsi rax movq  rax popq } ;
 
 :! invert  { rax notq } ;
 :! negate  { rax negq } ;
@@ -136,9 +162,10 @@ link :!  enter  { link  enter }  exit
 :! repeat  { again then } ;
 
 \ TODO consider including range checks
-:! for   { <r> rbx pushq <r>  rbx rax movq  rax popq }  here  { rbx decq } ;
-:! i     { dup  rax rbx movq } ;
-:! next  { rbx } $ 0 { cmpq$  jg$  <r> rbx popq <r> } ;
+:! for     { <r> rbx pushq <r>  rbx rax movq  rax popq }  here  { rbx decq } ;
+:! i       { dup  rax rbx movq } ;
+:! unloop  { <r> rbx popq <r> } ;
+:! next    { rbx } $ 0 { cmpq$  jg$  unloop } ;
 
 :! 0=   { rax rax testq  rax setzb   rax rax movzxbl } ;
 :! 0<>  { rax rax testq  rax setnzb  rax rax movzxbl } ;
@@ -154,6 +181,9 @@ link :!  enter  { link  enter }  exit
 :! <=   { rdx popq  rax rdx cmpq  rax setleb  rax rax movzxbl } ;
 :! max  { rdx popq  rax rdx cmpq  rax rdx cmovgq } ;
 :! min  { rdx popq  rax rdx cmpq  rax rdx cmovlq } ;
+
+:! execute  { rdx rax movq  rax popq  rdx callq } ;
+:! jump     { rdx rax movq  rax popq  rdx jmpq } ;
 
 :!  @  { rax rax movq@ } ;
 :! c@  { rax rax movzxb@ } ;
