@@ -56,7 +56,8 @@ link :!  enter  { link  enter }  exit
 
 \ More assembler words
 
-:! addq!    rex.w,    $ 01 c,            mem modr/m, ; \ TODO  swap like movq@
+\ Note: can't source [rsp] or [rbp] on plain @ operations due to SIB encoding
+:! addq!    rex.w,    $ 01 c,            mem modr/m, ;
 :! orq      rex.w,    $ 09 c,            reg modr/m, ;
 :! andq     rex.w,    $ 21 c,            reg modr/m, ;
 :! xorq     rex.w,    $ 31 c,            reg modr/m, ;
@@ -65,8 +66,8 @@ link :!  enter  { link  enter }  exit
 :! cmpq$    rex.w,    $ 81 c,  swap  $ 7 reg modr/m, d, ;
 :! testq    rex.w,    $ 85 c,            reg modr/m, ;
 :! xchgq    rex.w,    $ 87 c,            reg modr/m, ;
-:! movb!              $ 88 c,            mem modr/m, ; \ TODO  swap like movq@
-:! movq!    rex.w,    $ 89 c,            mem modr/m, ; \ TODO  swap like movq@
+:! movb!              $ 88 c,            mem modr/m, ;
+:! movq!    rex.w,    $ 89 c,            mem modr/m, ;
 :! movq@    rex.w,    $ 8b c,  swap      mem modr/m, ;
 :! shrq$    rex.w,    $ c1 c,  swap  $ 5 reg modr/m, c, ;
 :! shlq$    rex.w,    $ c1 c,  swap  $ 6 reg modr/m, c, ;
@@ -76,6 +77,7 @@ link :!  enter  { link  enter }  exit
 :! clshrq   rex.w,    $ d3 c,   $ 5      reg modr/m, ;
 :! clshlq   rex.w,    $ d3 c,   $ 6      reg modr/m, ;
 :! clsarq   rex.w,    $ d3 c,   $ 7      reg modr/m, ;
+:! call$              $ e8 c,                 rel32, ;
 :! jmp$               $ e9 c,                 rel32, ;
 :! notq     rex.w,    $ f7 c,   $ 2      reg modr/m, ;
 :! negq     rex.w,    $ f7 c,   $ 3      reg modr/m, ;
@@ -109,14 +111,14 @@ link :!  enter  { link  enter }  exit
 
 :! nip    { rdx popq } ;
 :! tuck   { rdx popq  rax pushq  rdx pushq } ;
-:! over   { rdx rsp movq@  rax pushq  rax rdx movq } ;
+:! over   { rdx popq  rdx pushq  rax pushq  rax rdx movq } ;
 :!  rot   { rcx popq  rdx popq  rcx pushq  rax pushq  rax rdx movq } ;
 :! -rot   { rcx popq  rdx popq  rax pushq  rdx pushq  rax rcx movq } ;
 
 :! <r>    { rsp rbp xchgq } ; \ TODO  consider optimizing words using this
 :! >r     { <r> rax pushq <r> rax popq } ;
 :! r>     { rax pushq  <r> rax popq <r> } ;
-:! r@     { rax pushq  rax rbp movq@ } ;
+:! r@     { rax pushq  <r> rax popq  rax pushq <r> } ;
 :! rdrop  { <r> rdx popq <r> } ;
 :! i>r    { <r> rbx pushq <r> } ;
 :! r>i    { <r> rbx popq <r> } ;
@@ -135,7 +137,7 @@ link :!  enter  { link  enter }  exit
 :! c!  { rdx popq  rax rdx movb!  rax popq } ;
 :! +!  { rdx popq  rax rdx addq!  rax popq } ;
 
-:! 2dup    { rdx rsp movq@  rax pushq  rdx pushq } ;
+:! 2dup    { rdx popq  rdx pushq  rax pushq  rdx pushq } ;
 :! 2drop   { rdx popq  rax popq } ;
 :! 2swap   { i>r  rbx rax movq  rcx popq  rax popq  rdx popq   rcx pushq  rbx pushq  rdx pushq  r>i } ;
 :! 2over   { i>r  rbx rax movq  rcx popq  rax popq  rdx popq   rdx pushq  rax pushq  rcx pushq  rbx pushq  rdx pushq r>i } ;
@@ -216,6 +218,14 @@ link :!  enter  { link  enter }  exit
 :! [     here /pad allot ;
 :! ]     { exit } back here /pad + execute ;
 
+:  name   here name, back  here ;
+:  >name  cell+ ;
+:  >xt    >name dup c@ + 1+ ;
+:  find   seek >xt ;
+:  >body  $ 5 + ;
+
+:  compile   { call$ } ;
+:! postpone  name find >xt compile ;
 
 \ Benchmark
 \ 

@@ -141,10 +141,9 @@
 : 2literal  { rdx dpushq  rax dpushq  rax } swap { movq$  rdx } swap { movq$ } ;
 
 \ Dictionary link manipulation (included here because it is an implementation-specific detail)
-:! /call  $ 5 literal ; \ Length of a call instruction
 : >name  cell+ ; \ Skip next link pointer
 : >xt    >name dup c@ + 1+ ; \ Skip pointer + counted string name
-: >body  >xt /call + ; \ Skip pointer, name, and first call instruction
+: >body  $ 5 + ; \ Skip first call instruction
 
 
 \ Control structures
