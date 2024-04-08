@@ -1,6 +1,12 @@
 \ TODO  Split into different files?
 
+\ Interpretation
+:! /pad  $ 100 literal ;
+:! [     here /pad allot ;
+:! ]     { exit }  back  here /pad + execute ;
+
 \ Parenthesis comments
+:  name  here name, back  here ;
 :! char  name 1+ c@ literal ;
 :! (  begin key char ) = until ;
 
@@ -58,8 +64,8 @@
 \ Note that since this is a compile-only Forth, create is not immediate, and therefore can't be used "immediately"
 : (create)  r> literal ;
 :  create   { :!  (create) } ;
-: (does>)  lp@ >xt  there r> compile back ;
-:! does!>  { (does>) r> } ;
+: (does>)  lp@ >doer  there r> compile back ;
+:! does!>  { (does>) enter r> } ;
 :! does>   { does!>  literal docol } ;
 \ ^^ Note the addition of does!> which redefines the created word to be immediate
 \ This is in contrast to does>, which is intended to behave more like a normal Forth
@@ -81,8 +87,6 @@
 [ sp@ ] constant s0
 [ rp@ ] constant r0
 
-int3! \ TODO TODO TODO  Segfaults after this point - probably constant related
-
 \ On/Off
 : on   true swap ! ;
 : off  false swap ! ;
@@ -94,15 +98,17 @@ int3! \ TODO TODO TODO  Segfaults after this point - probably constant related
 : later>  2r> >r >r ;
 
 \ Vectored execution
+:  not-found  ( cstr -- ) count type char ? emit ;
+:  find  ( cstr -- xt/0 ) dup seek  dup 0<> if  nip >xt  else  swap not-found  then ;
+:! postpone  name find compile ;
 :! alias  { :! postpone ; } ;
 :! nothing ;
-alias nothing  nop
+:! '  name find ;
 :! defer  create ' nothing , does>  @execute ;
 alias is    to
 alias doer  defer
 :! make  { at }  docol  r> swap ! ;
 \ TODO  ^ Add support for ;and
-
 
 \ TODO  Find a good conditional compilation mechanism for supporting optimized versions of e.g. below
 \ Memory copying
@@ -125,6 +131,6 @@ alias doer  defer
 \ Common address and size calculations
 : aligned  1- tuck + swap invert and ; \ Aligns for powers of 2 only
 : within  rot tuck  > -rot  <= and ;
-: kb  # 10 lshift ;
-: mb  # 20 lshift ;
-: gb  # 30 lshift ;
+: kb  # 10 << ;
+: mb  # 20 << ;
+: gb  # 30 << ;

@@ -143,7 +143,7 @@
 \ Dictionary link manipulation (included here because it is an implementation-specific detail)
 : >name  cell+ ; \ Skip next link pointer
 : >xt    >name dup c@ + 1+ ; \ Skip pointer + counted string name
-: >body  $ 5 + ; \ Skip first call instruction
+: >body  >xt $ 5 + ; \ Skip first call instruction
 
 
 \ Control structures

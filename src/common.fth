@@ -71,7 +71,7 @@
 :! 2variable  create $ 2 cells allot ;
 :! constant  create , does!>  @ literal ;
 :! value     create , does>   @ ;
-:! at  name find >body literal ;
+:! at  name seek >body literal ;
 :! to  { at ! } ;
 
 \ Common constants
