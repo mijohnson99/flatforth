@@ -219,14 +219,3 @@ link :!  enter  { link  enter }  exit
 :  >xt    >name dup c@ + 1+ ; \ length of cstr
 :  >doer  >xt   $ 7 + ; \ length of enter
 :  >body  >doer $ 5 + ; \ length of call$
-
-\ Benchmark
-\ 
-\ : collatz-step  dup $ 1 and  if  dup 2* + 1+  else  2/  then ;
-\ : collatz-len   $ 0 swap begin  dup $ 1 > while  collatz-step  swap 1+ swap repeat drop ;
-\ : max-collatz   $ 0 swap for  i collatz-len max  next ;
-\ 
-\ :! test  $ f4240 max-collatz  int3 ;
-\ test
-\ 
-\ int3!
