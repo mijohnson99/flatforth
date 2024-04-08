@@ -214,17 +214,19 @@ link :!  enter  { link  enter }  exit
 :! @execute  { rdx rax movq  rax popq  rdx call@ } ;
 :! @jump     { rdx rax movq  rax popq  rdx jmp@ } ;
 
-:! /pad  $ 100 literal ;
-:! [     here /pad allot ;
-:! ]     { exit } back here /pad + execute ;
-
-:  name   here name, back  here ;
+\ Dictionary link manipulation
 :  >name  cell+ ;
 :  >xt    >name dup c@ + 1+ ;
-:  find   seek >xt ;
-:  >body  $ 5 + ;
+:  >body  $ c + ; \ length of enter + call$
 
 :  compile   { call$ } ;
+
+\ TODO  Consider moving these to common (fairly architecture-independent)
+:! /pad  $ 100 literal ;
+:! [     here /pad allot ;
+:! ]     { exit }  back  here /pad + execute ;
+:  name  here name, back  here ;
+:  find  seek >xt ;
 :! postpone  name find >xt compile ;
 
 \ Benchmark
