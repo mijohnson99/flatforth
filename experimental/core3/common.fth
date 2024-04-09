@@ -66,7 +66,7 @@
 :  create   { :!  (create) } ;
 : (does>)  lp@ >doer  there r> compile back ;
 :! does!>  { (does>) enter r> } ;
-:! does>   { does!>  literal docol } ;
+:! does>   { does!>  literal docol enter } ;
 \ ^^ Note the addition of does!> which redefines the created word to be immediate
 \ This is in contrast to does>, which is intended to behave more like a normal Forth
 
