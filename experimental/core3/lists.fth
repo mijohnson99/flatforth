@@ -7,7 +7,7 @@
 : +links  ( list size count -- )  for  2dup +link  next 2drop ;
 
 : traverse-list>  ( ? link -- ? ) ( R:  xt -- )   ( xt: ? link -- ? )
-	begin  dup 0<> while  r@  over >r  execute  r> @ repeat drop rdrop ;
+	begin  dup 0<> while  r@  over >r  goto  r> @ repeat drop rdrop ;
 
 : length  ( list -- n )  $ 0 swap  @ traverse-list>  drop 1+ ;
 

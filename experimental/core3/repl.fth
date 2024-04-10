@@ -24,7 +24,7 @@ defer quit
 
 : ?not-found
 	dup 0<> ?exit
-	drop count type  char ? emit  cr  quit ;
+	drop not-found  quit ;
 
 : ?unstructured
 	dup ' ; <> ?exit
@@ -33,7 +33,7 @@ defer quit
 
 : ?underflow
 	sp@ s0 <= ?exit
-	." Underflow" cr  quit ;
+	." Underflow" cr  quit ; \ core3 TODO  broken
 
 
 \ Redefined REPL with safety checks introduced above
@@ -42,7 +42,7 @@ defer quit
 	s0 sp!  r0 rp!
 	postpone \
 	begin
-		name  dup find
+		name  dup seek  dup if >xt then
 		( cstr xt )
 		?literal
 		?not-found
@@ -57,8 +57,6 @@ defer quit
 [ quit ]
 
 
-int3!  \ TODO  Update below items - still not working
-
 \ Development utilities
 
 : (forget)  back  here @ lp! ;
@@ -70,8 +68,8 @@ int3!  \ TODO  Update below items - still not working
 : <.>  ." <" dup .# ." > " ;
 :! ?for  { dup 0> if  for } ;
 :! ?next { next  else drop then } ;
-: #s  s0 sp@ -  $ 3 >>  1- ;
-: .s  $ 0  #s 1-  <.>  ?for  sp@ i cells + @ .  space  ?next  cr  drop ;
+: #s  s0 sp@ -  $ 3 >>  $ 2 - ;
+: .s  $ 0  #s 1-  <.>  ?for  sp@ i cells + @ .  space  ?next  cr  drop ; \ core3 TODO  broken?
 \ ^ This definition is really tricky because the operations directly interfere with the stack...
 \ I've tried to refactor this to make it clearer, but it's a miracle that it works at all.
 

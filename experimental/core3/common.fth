@@ -98,7 +98,7 @@
 : later>  2r> >r >r ;
 
 \ Vectored execution
-:  not-found  ( cstr -- )  count type  char ? emit ;
+:  not-found  ( cstr -- )  count type  char ? emit  cr ;
 :  find  ( cstr -- xt/0 )  dup seek  dup 0<> if  nip >xt  else  swap not-found  then ;
 :! '         name find literal ;
 :! postpone  name find compile ;
@@ -107,10 +107,10 @@
 :! defer  create ' nothing , does!>  literal { @execute } ;
 alias is    to
 alias doer  defer
-:! make  { at }  docol  r> swap ! ;
-\ TODO  ^ Add support for ;and
+:! make  { at }  docol  r> swap ! ; \ TODO  Add support for ;and
+: goto  >r ; \ Used for jumping to non-XT code segments (no word entry)
+\ core3 TODO  ^ Can this trick be used elsewhere (create/does/defer etc.) to avoid the prologue/epilogue issue?
 
-\ TODO  Find a good conditional compilation mechanism for supporting optimized versions of e.g. below
 \ Memory copying
 : cstep  swap 1+ swap 1+ ;
 : ccopy  swap c@ swap c! ;
