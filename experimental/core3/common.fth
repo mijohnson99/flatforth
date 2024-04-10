@@ -98,13 +98,13 @@
 : later>  2r> >r >r ;
 
 \ Vectored execution
-:  not-found  ( cstr -- ) count type char ? emit ;
-:  find  ( cstr -- xt/0 ) dup seek  dup 0<> if  nip >xt  else  swap not-found  then ;
+:  not-found  ( cstr -- )  count type  char ? emit ;
+:  find  ( cstr -- xt/0 )  dup seek  dup 0<> if  nip >xt  else  swap not-found  then ;
+:! '         name find literal ;
 :! postpone  name find compile ;
 :! alias  { :! postpone ; } ;
 :! nothing ;
-:! '  name find ;
-:! defer  create ' nothing , does>  @execute ;
+:! defer  create ' nothing , does!>  literal { @execute } ;
 alias is    to
 alias doer  defer
 :! make  { at }  docol  r> swap ! ;
