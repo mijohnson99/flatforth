@@ -126,7 +126,7 @@ link :!  enter  { link  enter }  exit
 :! r>i    { <r> rbx popq <r> } ;
 
 :   literal  { dup  rax } swap { movabs$ } ;
-:  2literal  swap { literal literal } ;
+:  2literal  swap literal literal ;
 :! cell      $ 8 literal ;
 :! cells     { rax } $ 3 { shlq$ } ;
 :! cell+     { rax } cell { addq$ } ;
