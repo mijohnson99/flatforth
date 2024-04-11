@@ -1,6 +1,12 @@
 \ TODO  Split into different files?
 
+\ Interpretation
+:! /pad  $ 100 literal ;
+:! [     here /pad allot ;
+:! ]     { exit }  back  here /pad + jump ;
+
 \ Parenthesis comments
+:  name  here name, back  here ;
 :! char  name 1+ c@ literal ;
 :! (  begin key char ) = until ;
 
@@ -20,6 +26,7 @@
 :! c-for  { for >r } ;
 :! c-i  { r@ c@ } ;
 :! c-next  { r> 1+ next drop } ;
+: digit  dup $ 39 > if  1- $ df and $ 36 -  else  char 0 -  then ;
 : >number  ( base str cnt -- u )  $ 0 -rot c-for  over *  c-i digit +  c-next nip ;
 : glyph  name count >number literal ;
 :! #  $ a glyph ; \ Decimal input
@@ -50,16 +57,18 @@
 : parse  ( delim -- str cnt ) here swap parse,  dup there over - ;  \ parse, but temporary (reset data pointer)
 :! s"  embed  char " parse,  with-length ;
 :! ."  { s" type } ;
-:! ':  embed ; \ Analogous to :noname
-:! ;'  { ; } alone ;
+:! :noname  here { enter } ;
+:! ':  embed { enter } ; \ Analogous to :noname, but used inside of definitions
+:! ;'  { exit } alone ;
 
 \ Data structures
 \ Note that since this is a compile-only Forth, create is not immediate, and therefore can't be used "immediately"
 : (create)  r> literal ;
 :  create   { :!  (create) } ;
-: (does>)  lp@ >xt  there r> compile back ;
-:! does!>  { (does>) r> } ;
-:! does>   { does!>  literal docol } ;
+: (does>)  lp@ >doer  there r> compile back ;
+:! does!>  { (does>) enter r> } ;
+: compile>  r> compile ;
+:! does>   { does!>  literal  compile> enter } ;
 \ ^^ Note the addition of does!> which redefines the created word to be immediate
 \ This is in contrast to does>, which is intended to behave more like a normal Forth
 
@@ -70,7 +79,7 @@
 :! variable  create cell allot ;
 :! 2variable  create $ 2 cells allot ;
 :! constant  create , does!>  @ literal ;
-:! value     create , does>   @ ;
+:! value     create , does>  @ ;
 :! at  name seek >body literal ;
 :! to  { at ! } ;
 
@@ -91,17 +100,17 @@
 : later>  2r> >r >r ;
 
 \ Vectored execution
+:  not-found  ( cstr -- )  count type  char ? emit  cr ;
+:  find  ( cstr -- xt/0 )  dup seek  dup 0<> if  nip >xt  else  swap not-found  then ;
+:! '         name find literal ;
+:! postpone  name find compile ;
 :! alias  { :! postpone ; } ;
 :! nothing ;
-alias nothing  nop
-:! defer  create ' nothing , does>  @execute ;
+:! defer  create ' nothing , does!>  literal { @execute } ;
 alias is    to
 alias doer  defer
-:! make  { at }  docol  r> swap ! ;
-\ TODO  ^ Add support for ;and
+:! make  { at }  compile>  r> swap ! ; \ TODO  Add support for ;and
 
-
-\ TODO  Find a good conditional compilation mechanism for supporting optimized versions of e.g. below
 \ Memory copying
 : cstep  swap 1+ swap 1+ ;
 : ccopy  swap c@ swap c! ;
@@ -122,6 +131,6 @@ alias doer  defer
 \ Common address and size calculations
 : aligned  1- tuck + swap invert and ; \ Aligns for powers of 2 only
 : within  rot tuck  > -rot  <= and ;
-: kb  # 10 lshift ;
-: mb  # 20 lshift ;
-: gb  # 30 lshift ;
+: kb  # 10 << ;
+: mb  # 20 << ;
+: gb  # 30 << ;

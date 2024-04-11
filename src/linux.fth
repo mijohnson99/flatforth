@@ -2,15 +2,15 @@
 
 : sys_exit
 	rdi rax movq
-	rax [ # 60 ] movq$
+	rax [ # 60 ] movabs$
 	syscall ;
 
 alias bye  sys_exit
 
 
-\ rcx, rdx, rdi, and rsi are clobbered by syscalls and must be preserved
-:! save     { rcx pushq  rdx pushq  rdi pushq  rsi pushq } ;
-:! restore  { rsi popq   rdi popq   rdx popq   rcx popq  } ;
+\ rbx, rdi, and rsi are clobbered by syscalls and must be preserved
+:! save     { rbx pushq  rdi pushq  rsi pushq } ;
+:! restore  { rsi popq   rdi popq   rbx popq  } ;
 
 
 variable clock_type
@@ -23,8 +23,8 @@ variable clock_type
 	clock_type @
 	save
 	rdi rax movq
-	rsi [ timespec ] movq$
-	rax [ # 228 ] movq$
+	rsi [ timespec ] movabs$
+	rax [ # 228 ] movabs$
 	syscall
 	restore
 	drop ;

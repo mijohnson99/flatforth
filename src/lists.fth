@@ -6,8 +6,9 @@
 : +link  ( list size -- )  here -rot  allot  give ;
 : +links  ( list size count -- )  for  2dup +link  next 2drop ;
 
+: go  jump ; \ Used for calling a location inside another word
 : traverse-list>  ( ? link -- ? ) ( R:  xt -- )   ( xt: ? link -- ? )
-	begin  dup 0<> while  r@  over >r  execute  r> @ repeat drop rdrop ;
+	begin  dup 0<> while  r@  over >r  go  r> @ repeat drop rdrop ;
 
 : length  ( list -- n )  $ 0 swap  @ traverse-list>  drop 1+ ;
 

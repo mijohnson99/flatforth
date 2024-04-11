@@ -1,5 +1,6 @@
-src/asm.fth
-src/prims.fth
+src/arch_x86_64.fth
 src/common.fth
 src/linux.fth
+src/lists.fth
+src/repl.fth
 examples/collatz.fth

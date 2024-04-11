@@ -1,6 +1,5 @@
 \ This file is meant to provide a friendlier interactive environment to work in.
 
-
 \ Base variable and automatic number parsing
 
 variable base  [ # 10 base ! ]
@@ -11,7 +10,7 @@ variable base  [ # 10 base ! ]
 
 : ?literal ( cstr xt -- cstr xt' )
 	dup 0<> ?exit
-	over count ?parse# if  literal  drop ' nop then ; \ replace 0 xt with nop
+	over count ?parse# if  literal  drop ' nothing then ; \ replace 0 xt with nop
 
 : u.  base @ .base ;
 : .  .sign u. ;
@@ -24,7 +23,7 @@ defer quit
 
 : ?not-found
 	dup 0<> ?exit
-	drop count type  char ? emit  cr  quit ;
+	drop not-found  quit ;
 
 : ?unstructured
 	dup ' ; <> ?exit
@@ -36,17 +35,13 @@ defer quit
 	." Underflow" cr  quit ;
 
 
-\ TODO  Safer redefinitions of all words that search the wordlist
-: find  seek  dup if  >xt  then ;
-
-
 \ Redefined REPL with safety checks introduced above
 
 :! (quit)
 	s0 sp!  r0 rp!
 	postpone \
 	begin
-		name  dup find
+		name  dup seek  dup if >xt then
 		( cstr xt )
 		?literal
 		?not-found
@@ -60,7 +55,6 @@ defer quit
 [ ' (quit) is quit ]
 [ quit ]
 
-
 \ Development utilities
 
 : (forget)  back  here @ lp! ;
@@ -72,8 +66,8 @@ defer quit
 : <.>  ." <" dup .# ." > " ;
 :! ?for  { dup 0> if  for } ;
 :! ?next { next  else drop then } ;
-: #s  s0 sp@ -  $ 3 rshift  1- ;
-: .s  $ 0  #s 1-  <.>  ?for  sp@ i cells + @ .  space  ?next  cr  drop ;
+: #s  s0 sp@ -  $ 3 >>  1- ;
+: .s  $ 0  #s 1-  <.>  ?for  sp@ i 1+ cells + @ .  space  ?next  cr  drop ;
 \ ^ This definition is really tricky because the operations directly interfere with the stack...
 \ I've tried to refactor this to make it clearer, but it's a miracle that it works at all.
 

@@ -117,7 +117,7 @@ link :!  enter  { link  enter }  exit
 :!  rot   { rcx popq  rdx popq  rcx pushq  rax pushq  rax rdx movq } ;
 :! -rot   { rcx popq  rdx popq  rax pushq  rdx pushq  rax rcx movq } ;
 
-:! <r>    { rsp rbp xchgq } ; \ TODO  consider optimizing words using this
+:! <r>    { rsp rbp xchgq } ; \ TODO  consider optimizing the words that use this
 :! >r     { <r> rax pushq <r> rax popq } ;
 :! r>     { rax pushq  <r> rax popq <r> } ;
 :! r@     { rax pushq  <r> rax popq  rax pushq <r> } ;

@@ -1,35 +1,28 @@
 # paraforth
-**An extremely minimal (but not limiting) native code Forth environment in <1K**
+**A very fast, self-hosting, native code Forth with a minuscule core (<1K)**
 
-At its very core, paraforth is just an assembly program with an association list of names to subroutines, and an input loop for invoking them.
-By pre-populating the list with *just* enough functionality to implement *another assembler*, a self-extensible language is born.
+At the core of paraforth is a very small assembly program - just an association list of names to subroutines, and an input loop for invoking them.
+By pre-populating the list with *just* enough functionality to build *a macro assembler*, a self-extensible language kernel is born.
 
-This project demonstrates a leap from just 19 words and 851 bytes to an interactive programming environment with hundreds of words.
+This project is a long-running exercise in building the smallest and fastest Forth possible without accepting **ANY** sacrifices in usability.
+No inputting pre-assembled machine code at runtime, and no cobbling together logic operations from NAND.
 
-While aiming to keep the core as minimal as possible, this work draws the line at having to input pre-assembled machine code.
-The purpose of this is to maintain paraforth's ability to meaningfully self-host.
-Anything short of that, however - including writing an assembler from scratch - is considered fair game.
+The entire language, save for just 15 words and 756 bytes of machine code, is written in itself and builds in place on startup.
 
 _(This project is an active work in progress.)_
 
 ### Quirks and Features:
 
 * Tiny binary executable size - under one kilobyte
-* Fast - a simplistic benchmark demonstrates ~4x speedup over `gforth-fast` on author's machine
-  * Benchmark task: find the longest Collatz sequence for starting values under 1 million
-* Fewer primitives than eForth - 19 vs. 31 - with as many as 5 that could still be eliminated
-* Subroutine-threaded code, with inlining of primitives also implemented at runtime
-  * Works by enabling a neat syntax for postponing blocks of code using `{` and `}`
-* Compile-only Forth, with no `STATE` variable and no interpreter buffer
-  * Code can still be "interpreted" (i.e., compiled and then run immediately) using `[` and `]`
-* No concept of `immediate` words, technically, since all words execute immediately when typed
-  * Non-immediate words use a shim that compiles a call to the rest of their code
-* No built-in number syntax - parsing words like `$` and `#` are used for integer literals (at first)
-  * The `base` variable and automatic number parsing are added as quality-of-life extensions in [repl.fth](src/repl.fth)
-* An assembler for a useful subset of x86-64 implemented as a runtime extension of the compiler
-* All I/O through a basic serial interface - `KEY` and `EMIT` are the only OS primitives in the core
+* Fast - a simplistic benchmark task demonstrates ~4x speedup over `gforth-fast` on author's machine
+* Fewer primitives than eForth - 15 vs. 31 - with one spent just to enable line comments out of the box
+* Subroutine-threaded code with primitive inlining - works by postponing blocks of code with `{` and `}`
+* Compile-only Forth - code can still be "interpreted" (compiled and executed immediately) with `[` and `]`
+* All words technically `immediate` - non-immediates use a shim that compiles a call instruction
+* No internalized number syntax - parsing words like `$` and `#` used for integer literals (at first)
+  * Quality-of-life extensions in [repl.fth](src/repl.fth) implement `base` and automatic number parsing
+* An assembler for a useful subset of x86-64 implemented at runtime as the first extension of the compiler
 * Working but very basic demo of ELF executable generation (no metacompiler yet)
-* Reasonably extensive design notes in the source code - assumes familiarity with typical Forth internals
 
 ### Getting Started:
 
@@ -46,15 +39,15 @@ The loader script can also be run with no arguments for additional details.
 More example code is available in the [examples](examples) and [src](src) directories.
 
 As a **very** brief overview, many trivial Forth examples can be translated to paraforth in just a couple of steps:
-* Precede all numeric literals with a parsing word indicating the base.
-  * Example: `77` becomes `# 77` or `$ 4d`
-  * **NOTE:** Avoidable if including [repl.fth](src/repl.fth)
-* Surround interpreted non-immediate words with brackets to execute them correctly.
+* Surround interpreted non-immediate words with brackets to execute them.
   * Example: `bye` becomes `[ bye ]`, `10 constant x` becomes `[ 10 ] constant x`
+* (Optional) Precede numeric literals with a parsing word indicating the base.
+  * Example: `77` becomes `# 77` or `$ 4d`
+  * Note: This step is only mandatory if not using the code in [repl.fth](src/repl.fth)
  
-_Friendly disclaimer: This is just scratching the surface.
+_Friendly disclaimer: This is scratching the surface.
 Although this project aims to respect established conventions, standards conformance is not a priority.
-These deviations are necessary to serve design goals, constraints, and/or personal preferences._
+Deviations are necessary to serve design goals, constraints, and/or personal preferences._
 
 <details>
 <summary> (Old usage notes with some additional details) </summary>
@@ -90,12 +83,9 @@ _(Anything marked done is still subject to improvements over time.)_
 
 ### Resources:
 
-For a list of words paraforth currently offers, invoke `words` (defined in [src/repl.fth](src/repl.fth)).
+For a list of words paraforth currently offers, load the interactive file list and invoke `words` (defined in [src/repl.fth](src/repl.fth)).
 
 To learn the system in detail, review [src/core.asm](src/core.asm) before proceeding through the files listed in [interactive.lst](interactive.lst). All source code comments in this project assume familiarity with programming in Forth, as well as typical Forth implementation techniques.
-
-Note that the assembler source code, [src/asm.fth](src/asm.fth), contains no documentation because support for comments is not introduced until the beginning of [src/prims.fth](src/prims.fth).
-However, it can be safely skipped if understanding of the included x86-64 assembler is not desired.
 
 Recommended background resources:
   * Starting Forth - [Link to site with PDF and online version](https://www.forth.com/starting-forth/)
