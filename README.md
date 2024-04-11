@@ -1,15 +1,16 @@
 # paraforth
-**A very fast, self-hosting, native code Forth with a minuscule core (<1K)**
+**A sub-1KB, self-hosting, native code Forth without compromise**
 
 At the core of paraforth is a very small assembly program - just an association list of names to subroutines, and an input loop for invoking them.
-By pre-populating the list with *just* enough functionality to build *a macro assembler*, a self-extensible language kernel is born.
+By pre-populating the list with *just* enough functionality to build a macro assembler, a self-extensible language kernel is born.
 
-This project is a long-running exercise in building the smallest and fastest Forth possible without accepting **ANY** sacrifices in usability.
+This project is a long-running exercise in building the smallest self-sufficient Forth possible, without **ANY** sacrifices in speed or usability.
 No inputting pre-assembled machine code at runtime, and no cobbling together logic operations from NAND.
 
-The entire language, save for just 15 words and 756 bytes of machine code, is written in itself and builds in place on startup.
+The entire language, save for just 15 words and 756 bytes of machine code, is implemented in itself - legibly - and builds in place on startup.
+Additionally, support for full bootstrapping coming soon (TM).
 
-_(This project is an active work in progress.)_
+_(Please note: This project is an active work in progress.)_
 
 ### Quirks and Features:
 
@@ -19,7 +20,7 @@ _(This project is an active work in progress.)_
 * Subroutine-threaded code with primitive inlining - works by postponing blocks of code with `{` and `}`
 * Compile-only Forth - code can still be "interpreted" (compiled and executed immediately) with `[` and `]`
 * All words technically `immediate` - non-immediates use a shim that compiles a call instruction
-* No internalized number syntax - parsing words like `$` and `#` used for integer literals (at first)
+* No internalized number syntax - parsing words like `$` and `#` used for integer literals (at least at first)
   * Quality-of-life extensions in [repl.fth](src/repl.fth) implement `base` and automatic number parsing
 * An assembler for a useful subset of x86-64 implemented at runtime as the first extension of the compiler
 * Working but very basic demo of ELF executable generation (no metacompiler yet)
@@ -77,7 +78,7 @@ My hope for this project is that it will eventually become fully self-hosting, e
    * ***(DONE)***
 4. Improve usability by providing a REPL with error handling, convenient launch scripts, and library code.
    * ***(IN PROGRESS)***
-5. Bootstrap the core and use the resulting system for other projects.
+5. Bootstrap the core and use the resulting matured system for bigger projects. (Generating UEFI executables?)
 
 _(Anything marked done is still subject to improvements over time.)_
 
