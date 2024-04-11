@@ -1,6 +1,5 @@
 \ This file is meant to provide a friendlier interactive environment to work in.
 
-
 \ Base variable and automatic number parsing
 
 variable base  [ # 10 base ! ]
@@ -33,7 +32,7 @@ defer quit
 
 : ?underflow
 	sp@ s0 <= ?exit
-	." Underflow" cr  quit ; \ core3 TODO  broken
+	." Underflow" cr  quit ;
 
 
 \ Redefined REPL with safety checks introduced above
@@ -56,7 +55,6 @@ defer quit
 [ ' (quit) is quit ]
 [ quit ]
 
-
 \ Development utilities
 
 : (forget)  back  here @ lp! ;
@@ -68,8 +66,8 @@ defer quit
 : <.>  ." <" dup .# ." > " ;
 :! ?for  { dup 0> if  for } ;
 :! ?next { next  else drop then } ;
-: #s  s0 sp@ -  $ 3 >>  $ 2 - ;
-: .s  $ 0  #s 1-  <.>  ?for  sp@ i cells + @ .  space  ?next  cr  drop ; \ core3 TODO  broken?
+: #s  s0 sp@ -  $ 3 >>  1- ;
+: .s  $ 0  #s 1-  <.>  ?for  sp@ i 1+ cells + @ .  space  ?next  cr  drop ;
 \ ^ This definition is really tricky because the operations directly interfere with the stack...
 \ I've tried to refactor this to make it clearer, but it's a miracle that it works at all.
 

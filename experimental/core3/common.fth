@@ -3,7 +3,7 @@
 \ Interpretation
 :! /pad  $ 100 literal ;
 :! [     here /pad allot ;
-:! ]     { exit }  back  here /pad + execute ;
+:! ]     { exit }  back  here /pad + jump ;
 
 \ Parenthesis comments
 :  name  here name, back  here ;
@@ -57,8 +57,9 @@
 : parse  ( delim -- str cnt ) here swap parse,  dup there over - ;  \ parse, but temporary (reset data pointer)
 :! s"  embed  char " parse,  with-length ;
 :! ."  { s" type } ;
-:! ':  embed ; \ Analogous to :noname
-:! ;'  { ; } alone ;
+:! :noname  here { enter } ;
+:! ':  embed { enter } ; \ Analogous to :noname, but used inside of definitions
+:! ;'  { exit } alone ;
 
 \ Data structures
 \ Note that since this is a compile-only Forth, create is not immediate, and therefore can't be used "immediately"
@@ -66,7 +67,8 @@
 :  create   { :!  (create) } ;
 : (does>)  lp@ >doer  there r> compile back ;
 :! does!>  { (does>) enter r> } ;
-:! does>   { does!>  literal docol enter } ;
+: compile>  r> compile ;
+:! does>   { does!>  literal  compile> enter } ;
 \ ^^ Note the addition of does!> which redefines the created word to be immediate
 \ This is in contrast to does>, which is intended to behave more like a normal Forth
 
@@ -77,7 +79,7 @@
 :! variable  create cell allot ;
 :! 2variable  create $ 2 cells allot ;
 :! constant  create , does!>  @ literal ;
-:! value     create , does>   @ ;
+:! value     create , does>  @ ;
 :! at  name seek >body literal ;
 :! to  { at ! } ;
 
@@ -107,9 +109,7 @@
 :! defer  create ' nothing , does!>  literal { @execute } ;
 alias is    to
 alias doer  defer
-:! make  { at }  docol  r> swap ! ; \ TODO  Add support for ;and
-: goto  >r ; \ Used for jumping to non-XT code segments (no word entry)
-\ core3 TODO  ^ Can this trick be used elsewhere (create/does/defer etc.) to avoid the prologue/epilogue issue?
+:! make  { at }  compile>  r> swap ! ; \ TODO  Add support for ;and
 
 \ Memory copying
 : cstep  swap 1+ swap 1+ ;
