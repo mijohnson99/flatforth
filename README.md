@@ -24,6 +24,7 @@ _(Please note: This project is an active work in progress.)_
   * Quality-of-life extensions in [repl.fth](src/repl.fth) implement `base` and automatic number parsing
 * An assembler for a useful subset of x86-64 implemented at runtime as the first extension of the compiler
 * Working but very basic demo of ELF executable generation (no metacompiler yet)
+* Reasonably extensive design notes in the source code - assumes familiarity with typical Forth internals
 
 ### Getting Started:
 
