@@ -59,7 +59,6 @@ sys_tx:
 sys_rx:
 	xor	eax, eax
 sys_xcv:
-	push	rcx
 	push	rdx
 	push	rdi
 	push	rsi
@@ -70,7 +69,6 @@ sys_xcv:
 	pop	rsi
 	pop	rdi
 	pop	rdx
-	pop	rcx
 .mov:	mov	al, 127 ; self-modifying
 	ret
 
