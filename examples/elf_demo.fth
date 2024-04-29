@@ -1,6 +1,8 @@
-[ $ 400000 ] constant load-addr
-[ $ 42000 ] constant extra-mem
+[ $ 400000 ] constant load-addr \ What virtual address to map the program to
+[ $ 42000 ] constant extra-mem \ How much extra physical memory to reserve past the code
+[ $ 10000 ] constant host-reserve \ How much room to let the host grow during assembly
 
+\ ELF header and offset-related definitions
 variable elf-header
 : target  elf-header @ ;
 : paddr  - ;
@@ -9,11 +11,23 @@ variable elf-header
 : memsz  $ 68 + ;
 : entry  $ 18 + ;
 
+\ Setting program entry subroutine
 :! set-entry  name find  target vaddr  target entry ! ;
 
+\ Words for updating the header and exporting the binary
 : update-size  here target paddr  dup target filesz !  extra-mem +  target memsz ! ;
 :! dump-binary  update-size  target  target filesz @  type  bye ;
 
+\ Words for giving the host some working memory and swapping between regions
+variable host-here
+variable target-here
+: >host    here target-here !  host-here @ back ;
+: >target  here host-here !  target-here @ back ;
+:! target:   here host-reserve + target-here !  >target ;
+
+\ TODO  Words for filling in forward references
+
+\ Putting an ELF header definition
 :! header
 	here elf-header !
 	\ ELF Header
@@ -21,12 +35,12 @@ variable elf-header
 	$ 2 c, \ ei_class (64-bit format)
 	$ 1 c, \ ei_data (little endian)
 	$ 1 c, \ ei_version (1)
-	$ 0 c, \ ei_osabi (System v)
+	$ 0 c, \ ei_osabi (System V)
 	$ 0 , \ ei_abiversion, ei_pad
 	$ 2 w, \ e_type (et_exec)
 	$ 3e w, \ e_machine (x86-64)
 	$ 1 d, \ e_version (1)
-	load-addr , \ e_entry (tbd)
+	load-addr , \ e_entry (TBD)
 	$ 40 , \ e_phoff
 	$ 0 , \ e_shoff
 	$ 0 d, \ e_flags
@@ -47,11 +61,16 @@ variable elf-header
 	$ 1000 , \ p_align
 	;
 
+
+\ Begin target output
+
+target:
+
 header
 
 link start
-	rax [ $ 3c ] movabs$
 	rdi [ $ 4d ] movabs$
+	rax [ $ 3c ] movabs$
 	syscall
 
 set-entry start

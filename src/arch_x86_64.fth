@@ -102,6 +102,7 @@ link :!  enter  { link  enter }  exit \ :! used instead of : for defining immedi
 :! shrq$    rex.w,  swap   $ c1   c,  $ 5 reg modr/m, c, ;
 :! shlq$    rex.w,  swap   $ c1   c,  $ 6 reg modr/m, c, ;
 :! sarq$    rex.w,  swap   $ c1   c,  $ 7 reg modr/m, c, ;
+:! retq                    $ c3   c,                     ;
 :! 1shlq    rex.w,         $ d1   c,  $ 6 reg modr/m,    ;
 :! 1sarq    rex.w,         $ d1   c,  $ 7 reg modr/m,    ;
 :! clshrq   rex.w,         $ d3   c,  $ 5 reg modr/m,    ;
