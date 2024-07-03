@@ -123,7 +123,8 @@
 
 \ Return stack manipulation
 
-: ?exit  if rdrop then ;
+: ^exit  rdrop rdrop ;
+: ?exit  if ^exit then ;
 : later>  2r> >r >r ;
 
 

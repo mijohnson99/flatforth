@@ -4,5 +4,6 @@ src/linux.fth
 src/random.fth
 src/lists.fth
 src/term.fth
+src/locals.fth
 src/repl.fth
 -
